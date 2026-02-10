@@ -6,15 +6,31 @@
     <div class="hero-content">
         <h1 class="hero-title">
             Intelligent <span class="gradient-text">Fraud Detection</span>
-            <br>for Insurance Claims
+            <br>for <span class="category-name">{{ category.capitalize() }}</span> Insurance
         </h1>
         <p class="hero-subtitle">
-            ClaimWatch AI analyzes claim patterns, assigns risk scores, and explains
-            its reasoning in plain English — so your team can investigate smarter, not harder.
+            ClaimWatch AI analyzes {{ category }} claim patterns, assigns risk scores, and explains
+            its reasoning in plain English.
         </p>
-        <a href="{{ url_for('predict_form') }}" class="btn btn-primary btn-lg">
-            🔍 Analyze a Claim
-        </a>
+
+        <!-- Category Selection -->
+        <div class="category-switcher glass-card">
+            <span class="switcher-label">Select Insurance Category:</span>
+            <div class="switcher-links">
+                {% for cat_id in categories %}
+                <a href="{{ url_for('select_category', category=cat_id) }}"
+                    class="switcher-item {% if cat_id == category %}active{% endif %}">
+                    {{ cat_id.capitalize() }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a href="{{ url_for('predict_form') }}" class="btn btn-primary btn-lg">
+                🔍 Analyze {{ category.capitalize() }} Claim
+            </a>
+        </div>
     </div>
 </section>
 

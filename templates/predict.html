@@ -11,81 +11,120 @@
         </div>
 
         <form action="{{ url_for('predict') }}" method="POST" class="claim-form" id="claimForm">
-            <div class="form-notice">
-                <p>⚠️ <strong>Note:</strong> Form fields will be auto-generated based on your dataset columns once the
-                    model is trained. Below are example placeholder fields.</p>
-            </div>
-
             <div class="form-grid">
-                <!-- These fields are placeholders; they will be updated to match your dataset -->
                 <div class="form-group">
-                    <label for="policy_number">Policy Number</label>
-                    <input type="text" id="policy_number" name="policy_number" placeholder="e.g. POL-12345" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="claim_amount">Claim Amount ($)</label>
-                    <input type="number" id="claim_amount" name="claim_amount" placeholder="e.g. 15000" step="0.01"
-                        required>
+                    <label for="incident_severity">Incident Severity</label>
+                    <select id="incident_severity" name="incident_severity" required>
+                        <option value="Total Loss">Total Loss</option>
+                        <option value="Major Damage">Major Damage</option>
+                        <option value="Minor Damage">Minor Damage</option>
+                        <option value="Trivial Damage">Trivial Damage</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
                     <label for="incident_type">Incident Type</label>
                     <select id="incident_type" name="incident_type" required>
-                        <option value="">Select type...</option>
-                        <option value="collision">Collision</option>
-                        <option value="theft">Theft</option>
-                        <option value="fire">Fire</option>
-                        <option value="vandalism">Vandalism</option>
-                        <option value="other">Other</option>
+                        <option value="Multi-vehicle Collision">Multi-vehicle Collision</option>
+                        <option value="Single Vehicle Collision">Single Vehicle Collision</option>
+                        <option value="Vehicle Theft">Vehicle Theft</option>
+                        <option value="Parked Car">Parked Car</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="incident_severity">Incident Severity</label>
-                    <select id="incident_severity" name="incident_severity" required>
-                        <option value="">Select severity...</option>
-                        <option value="minor">Minor Damage</option>
-                        <option value="major">Major Damage</option>
-                        <option value="total_loss">Total Loss</option>
-                    </select>
+                    <label for="incident_hour_of_the_day">Incident Hour (0-23)</label>
+                    <input type="number" id="incident_hour_of_the_day" name="incident_hour_of_the_day" value="12"
+                        min="0" max="23" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="insured_age">Insured Age</label>
-                    <input type="number" id="insured_age" name="insured_age" placeholder="e.g. 35" min="18" max="100"
+                    <label for="number_of_vehicles_involved">Vehicles Involved</label>
+                    <input type="number" id="number_of_vehicles_involved" name="number_of_vehicles_involved" value="1"
+                        min="1" max="10" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="total_claim_amount">Total Claim Amount ($)</label>
+                    <input type="number" id="total_claim_amount" name="total_claim_amount" placeholder="e.g. 50000"
                         required>
                 </div>
 
                 <div class="form-group">
-                    <label for="annual_income">Annual Income ($)</label>
-                    <input type="number" id="annual_income" name="annual_income" placeholder="e.g. 55000" step="0.01"
+                    <label for="injury_claim">Injury Claim Amount ($)</label>
+                    <input type="number" id="injury_claim" name="injury_claim" placeholder="e.g. 5000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="property_claim">Property Claim Amount ($)</label>
+                    <input type="number" id="property_claim" name="property_claim" placeholder="e.g. 5000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="vehicle_claim">Vehicle Claim Amount ($)</label>
+                    <input type="number" id="vehicle_claim" name="vehicle_claim" placeholder="e.g. 40000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="policy_annual_premium">Annual Premium ($)</label>
+                    <input type="number" id="policy_annual_premium" name="policy_annual_premium" placeholder="e.g. 1500"
                         required>
                 </div>
 
                 <div class="form-group">
-                    <label for="number_of_past_claims">Past Claims (last 3 years)</label>
-                    <input type="number" id="number_of_past_claims" name="number_of_past_claims" placeholder="e.g. 2"
-                        min="0" required>
+                    <label for="policy_deductable">Policy Deductible ($)</label>
+                    <input type="number" id="policy_deductable" name="policy_deductable" placeholder="e.g. 1000"
+                        required>
                 </div>
 
                 <div class="form-group">
-                    <label for="police_report_filed">Police Report Filed?</label>
-                    <select id="police_report_filed" name="police_report_filed" required>
-                        <option value="">Select...</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
+                    <label for="umbrella_limit">Umbrella Limit ($)</label>
+                    <input type="number" id="umbrella_limit" name="umbrella_limit" value="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="age">Insured Age</label>
+                    <input type="number" id="age" name="age" min="18" max="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="insured_sex">Sex</label>
+                    <select id="insured_sex" name="insured_sex" required>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="insured_education_level">Education Level</label>
+                    <select id="insured_education_level" name="insured_education_level" required>
+                        <option value="PhD">PhD</option>
+                        <option value="MD">MD</option>
+                        <option value="JD">JD</option>
+                        <option value="Masters">Masters</option>
+                        <option value="Associate">Associate</option>
+                        <option value="College">College</option>
+                        <option value="High School">High School</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="incident_state">Incident State</label>
+                    <input type="text" id="incident_state" name="incident_state" placeholder="e.g. OH" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="auto_make">Auto Make</label>
+                    <input type="text" id="auto_make" name="auto_make" placeholder="e.g. Saab" required>
+                </div>
+
+                <input type="hidden" name="policy_bind_date" value="2010-01-01">
+                <input type="hidden" name="incident_date" value="2015-01-01">
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    🚀 Analyze Claim
-                </button>
-                <button type="reset" class="btn btn-secondary">
-                    Clear Form
-                </button>
+                <button type="submit" class="btn btn-primary btn-lg">🚀 Analyze Claim</button>
+                <button type="reset" class="btn btn-secondary">Clear Form</button>
             </div>
         </form>
     </div>

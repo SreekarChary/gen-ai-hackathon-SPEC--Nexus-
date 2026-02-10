@@ -16,38 +16,51 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
 
 @app.route("/")
 def index():
-    """Dashboard — shows model performance metrics."""
-    # Try to load saved metrics; fall back to placeholder if not trained yet.
+    """Dashboard — shows model performance metrics for selected category."""
+    import joblib, config
+    category = session.get("category", config.DEFAULT_CATEGORY)
+    
     metrics = None
     try:
-        import joblib, config
-        metrics_path = os.path.join(config.MODELS_DIR, "metrics.pkl")
+        metrics_path = os.path.join(config.get_model_dir(category), "metrics.pkl")
         if os.path.exists(metrics_path):
             metrics = joblib.load(metrics_path)
     except Exception:
         pass
 
-    return render_template("index.html", metrics=metrics)
+    return render_template("index.html", metrics=metrics, category=category, categories=config.CATEGORIES)
+
+
+@app.route("/select_category/<category>")
+def select_category(category):
+    """Update selected category in session."""
+    import config
+    if category in config.CATEGORIES:
+        session["category"] = category
+    return redirect(url_for("index"))
 
 
 @app.route("/predict", methods=["GET"])
 def predict_form():
-    """Render the claim submission form."""
-    return render_template("predict.html")
+    """Render the category-specific claim submission form."""
+    import config
+    category = session.get("category", config.DEFAULT_CATEGORY)
+    template = f"predict_{category}.html" if category != "vehicle" else "predict.html"
+    return render_template(template, category=category)
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
     """Accept form data, run prediction, store result in session."""
+    import config
     from src.predict import predict_claim
-
-    # Collect all form fields into a dict
+    
+    category = session.get("category", config.DEFAULT_CATEGORY)
     claim_data = {key: value for key, value in request.form.items()}
 
-    # Run prediction
-    result = predict_claim(claim_data)
+    # Run prediction for the specific category
+    result = predict_claim(claim_data, category=category)
 
-    # Store in session for the result page
     session["result"] = result
     session["claim_data"] = claim_data
     return redirect(url_for("result"))

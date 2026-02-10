@@ -4,25 +4,32 @@ import pytest
 from src.preprocessing import clean_data, engineer_features
 
 
-def test_clean_data_removes_nulls():
+def test_clean_data_handles_nans_and_junk():
     df = pd.DataFrame({
-        "a": [1, 2, None, 4],
-        "b": ["x", "y", "z", None],
+        "policy_number": ["POL1", "POL2"],
+        "age": [30, 40],
+        "_c39": [None, None],
+        "incident_type": ["Collision", "?"],
+        "target": ["Y", "N"]
     })
     result = clean_data(df)
+    # _c39 should be dropped, '?' replaced and filled
+    assert "_c39" not in result.columns
     assert result.isnull().sum().sum() == 0
+    assert "?" not in result.values
 
 
-def test_clean_data_removes_duplicates():
+def test_engineer_features_creates_correct_cols():
     df = pd.DataFrame({
-        "a": [1, 1, 2],
-        "b": ["x", "x", "y"],
+        "policy_bind_date": ["2010-01-01"],
+        "incident_date": ["2010-01-11"],
+        "incident_hour_of_the_day": [12],
+        "injury_claim": [1000],
+        "property_claim": [1000],
+        "total_claim_amount": [10000]
     })
-    result = clean_data(df)
-    assert len(result) == 2
-
-
-def test_engineer_features_returns_dataframe():
-    df = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
     result = engineer_features(df)
-    assert isinstance(result, pd.DataFrame)
+    assert "days_to_incident" in result.columns
+    assert result.iloc[0]["days_to_incident"] == 10
+    assert "injury_claim_ratio" in result.columns
+    assert "policy_bind_date" not in result.columns

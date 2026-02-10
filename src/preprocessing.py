@@ -1,97 +1,117 @@
-"""
-Module 1 — Data Preprocessing
-Handles loading, cleaning, feature engineering, encoding, and splitting the dataset.
-"""
 import os
-import pandas as pd
+import sys
+import argparse
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+import pandas as pd
 import joblib
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split
 
+# Add root dir to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 
 
-def load_data(filename: str) -> pd.DataFrame:
-    """Load raw CSV dataset."""
-    filepath = os.path.join(config.DATA_RAW_DIR, filename)
-    df = pd.read_csv(filepath)
-    print(f"[✓] Loaded dataset: {filepath}  —  {df.shape[0]} rows, {df.shape[1]} columns")
+def load_data(category: str) -> pd.DataFrame:
+    """Load raw dataset for a specific category."""
+    path = config.get_raw_path(category)
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Dataset not found for {category}: {path}")
+    
+    df = pd.read_csv(path)
+    print(f"[✓] Loaded {category} data: {len(df)} rows, {len(df.columns)} columns")
     return df
 
 
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop nulls, duplicates, and fix data types."""
+def clean_data(df: pd.DataFrame, category: str) -> pd.DataFrame:
+    """Drop junk, handle missing values, and fix data types per category."""
     initial_rows = len(df)
+    cat_cfg = config.CATEGORIES[category]
+
+    # Drop category-specific junk columns
+    junk_cols = cat_cfg["junk_cols"]
+    df = df.drop(columns=[c for c in junk_cols if c in df.columns])
+
+    # Replace '?' or 'None' with NaN
+    df = df.replace(['?', 'None'], np.nan)
+
+    # Strip whitespace from string columns
+    str_cols = df.select_dtypes(include="object").columns.tolist()
+    for col in str_cols:
+        df[col] = df[col].astype(str).str.strip()
 
     # Drop duplicates
     df = df.drop_duplicates()
 
-    # Drop rows with any null values (can be refined per-column later)
-    df = df.dropna()
-
-    # Strip whitespace from string columns
-    str_cols = df.select_dtypes(include="object").columns
-    for col in str_cols:
-        df[col] = df[col].str.strip()
+    # Fill NaNs with mode (simple)
+    if not df.empty:
+        df = df.fillna(df.mode().iloc[0])
 
     removed = initial_rows - len(df)
-    print(f"[✓] Cleaned data: removed {removed} rows  —  {len(df)} rows remaining")
+    print(f"[✓] Cleaned {category} data: removed {removed} rows")
     return df.reset_index(drop=True)
 
 
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Create derived features that help the model detect fraud patterns.
-    NOTE: Column names will be updated once the actual dataset is provided.
-    """
-    # Placeholder — feature engineering will be customized to your dataset columns.
-    # Examples of typical derived features:
-    #   - claim_to_income_ratio  = claim_amount / annual_income
-    #   - days_to_report         = (report_date - incident_date).days
-    #   - claims_last_year       = count of past claims per policyholder
-    print("[✓] Feature engineering complete")
+def engineer_features(df: pd.DataFrame, category: str) -> pd.DataFrame:
+    """Create derived features specific to the insurance category."""
+    if category == "vehicle":
+        # Existing vehicle logic
+        df['policy_bind_date'] = pd.to_datetime(df['policy_bind_date'])
+        df['incident_date'] = pd.to_datetime(df['incident_date'])
+        df['days_to_incident'] = (df['incident_date'] - df['policy_bind_date']).dt.days
+        df['incident_hour_of_the_day'] = df['incident_hour_of_the_day'].astype(int)
+        df['injury_claim_ratio'] = df['injury_claim'] / (df['total_claim_amount'] + 1)
+        df['property_claim_ratio'] = df['property_claim'] / (df['total_claim_amount'] + 1)
+        df = df.drop(columns=['policy_bind_date', 'incident_date'])
+        
+    elif category == "health":
+        # Health insurance logic
+        df['Claim_Date'] = pd.to_datetime(df['Claim_Date'])
+        df['Service_Date'] = pd.to_datetime(df['Service_Date'])
+        df['Policy_Expiration_Date'] = pd.to_datetime(df['Policy_Expiration_Date'])
+        
+        # Tenure: days between start of service and policy expiry
+        df['days_to_expiry'] = (df['Policy_Expiration_Date'] - df['Service_Date']).dt.days
+        # Claim lag: days between service and claim filing
+        df['claim_lag'] = (df['Claim_Date'] - df['Service_Date']).dt.days
+        
+        # Casting
+        df['Claim_Submitted_Late'] = df['Claim_Submitted_Late'].map({'True': 1, 'False': 0, True: 1, False: 0}).fillna(0).astype(int)
+        
+        # Drop raw dates
+        df = df.drop(columns=['Claim_Date', 'Service_Date', 'Policy_Expiration_Date'])
+
+    print(f"[✓] Feature engineering complete for {category}")
     return df
 
 
-def encode_and_scale(df: pd.DataFrame, target_col: str):
-    """
-    Label-encode categorical columns, standard-scale numeric columns.
-    Saves encoders and scaler to models/ for reuse at inference time.
-    Returns X (features), y (target), feature_names.
-    """
-    os.makedirs(config.MODELS_DIR, exist_ok=True)
+def encode_and_scale(df: pd.DataFrame, category: str):
+    """Encodes categorical data and scales numbers."""
+    cat_cfg = config.CATEGORIES[category]
+    target_col = cat_cfg["target"]
 
     # Separate target
-    y = df[target_col].copy()
-    X = df.drop(columns=[target_col]).copy()
+    y = df[target_col].apply(lambda x: 1 if str(x).upper() in ['Y', 'TRUE', '1'] else 0).values
+    X = df.drop(columns=[target_col])
 
-    # Label-encode categoricals
-    label_encoders = {}
+    # Identify types
     cat_cols = X.select_dtypes(include="object").columns.tolist()
+    num_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+
+    # Encoders
+    label_encoders = {}
     for col in cat_cols:
         le = LabelEncoder()
         X[col] = le.fit_transform(X[col].astype(str))
         label_encoders[col] = le
 
-    joblib.dump(label_encoders, os.path.join(config.MODELS_DIR, "label_encoders.pkl"))
-
-    # Encode target if it is categorical
-    if y.dtype == "object":
-        target_le = LabelEncoder()
-        y = target_le.fit_transform(y)
-        joblib.dump(target_le, os.path.join(config.MODELS_DIR, "target_encoder.pkl"))
-
-    # Standard-scale numerics
+    # Scaler
     scaler = StandardScaler()
-    num_cols = X.select_dtypes(include=[np.number]).columns.tolist()
-    X[num_cols] = scaler.fit_transform(X[num_cols])
+    if num_cols:
+        X[num_cols] = scaler.fit_transform(X[num_cols])
 
-    joblib.dump(scaler, os.path.join(config.MODELS_DIR, "scaler.pkl"))
-
-    feature_names = X.columns.tolist()
-    print(f"[✓] Encoding & scaling done  —  {len(cat_cols)} categorical, {len(num_cols)} numeric features")
-    return X, y, feature_names
+    print(f"[✓] Encoding & scaling done for {category}  —  {len(cat_cols)} categorical, {len(num_cols)} numeric features")
+    return X, y, label_encoders, scaler, X.columns.tolist(), num_cols
 
 
 def split_data(X, y):
@@ -100,34 +120,43 @@ def split_data(X, y):
         X, y,
         test_size=config.TEST_SIZE,
         random_state=config.RANDOM_STATE,
-        stratify=y,
+        stratify=y
     )
     print(f"[✓] Split: {len(X_train)} train / {len(X_test)} test samples")
     return X_train, X_test, y_train, y_test
 
 
-def save_processed(X_train, X_test, y_train, y_test, feature_names):
-    """Save processed datasets to data/processed/."""
-    os.makedirs(config.DATA_PROCESSED_DIR, exist_ok=True)
-    joblib.dump(
-        {"X_train": X_train, "X_test": X_test,
-         "y_train": y_train, "y_test": y_test,
-         "feature_names": feature_names},
-        os.path.join(config.DATA_PROCESSED_DIR, "processed_data.pkl"),
-    )
-    print(f"[✓] Processed data saved to {config.DATA_PROCESSED_DIR}")
-
-
 # ─── CLI entry point ───────────────────────────────────
 if __name__ == "__main__":
-    # Update the filename and target column once you have the dataset
-    DATASET_FILENAME = "claims.csv"         # <-- change to your CSV name
-    TARGET_COLUMN = "fraud_reported"        # <-- change to your target column
+    parser = argparse.ArgumentParser(description="Preprocess insurance data.")
+    parser.add_argument("--category", type=str, default=config.DEFAULT_CATEGORY, help="vehicle or health")
+    args = parser.parse_args()
 
-    df = load_data(DATASET_FILENAME)
-    df = clean_data(df)
-    df = engineer_features(df)
-    X, y, feature_names = encode_and_scale(df, TARGET_COLUMN)
+    cat = args.category
+    
+    df = load_data(cat)
+    df = clean_data(df, cat)
+    df = engineer_features(df, cat)
+    X, y, encoders, scaler, features, num_cols = encode_and_scale(df, cat)
+    
     X_train, X_test, y_train, y_test = split_data(X, y)
-    save_processed(X_train, X_test, y_train, y_test, feature_names)
-    print("\n✅ Preprocessing pipeline complete!")
+
+    # Save artifacts in category-specific folder
+    processed_dir = config.get_processed_dir(cat)
+    model_dir = config.get_model_dir(cat)
+    os.makedirs(processed_dir, exist_ok=True)
+    os.makedirs(model_dir, exist_ok=True)
+
+    data_bundle = {
+        "X_train": X_train, "X_test": X_test,
+        "y_train": y_train, "y_test": y_test,
+        "feature_names": features,
+        "num_cols": num_cols
+    }
+    
+    joblib.dump(data_bundle, os.path.join(processed_dir, "processed_data.pkl"))
+    joblib.dump(encoders, os.path.join(model_dir, "label_encoders.pkl"))
+    joblib.dump(scaler, os.path.join(model_dir, "scaler.pkl"))
+
+    print(f"\n✅ Preprocessing complete for {cat}!")
+    print(f"   Artifacts saved to {processed_dir} and {model_dir}")

@@ -44,4 +44,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         requestAnimationFrame(animate);
     }
+
+    // ─── Animate feature bars ───────────────────
+    const featureBars = document.querySelectorAll('.feature-bar-fill');
+    featureBars.forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        if (width) {
+            // Set width via JS to avoid CSS linter errors in templates
+            setTimeout(() => {
+                bar.style.width = width + '%';
+            }, 400);
+        }
+    });
 });

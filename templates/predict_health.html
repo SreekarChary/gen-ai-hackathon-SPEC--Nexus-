@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Analyze Health Claim — ClaimWatch AI{% endblock %}
+
+{% block content %}
+<section class="form-section">
+    <div class="form-container glass-card">
+        <div class="form-header">
+            <h1>Analyze <span class="gradient-text">Health Claim</span></h1>
+            <p>Enter patient and claim details below for instant fraud analysis.</p>
+        </div>
+
+        <form action="{{ url_for('predict') }}" method="POST" class="claim-form">
+            <!-- Patient Info -->
+            <div class="form-group-section">
+                <h3>Patient Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="Patient_Age">Patient Age</label>
+                        <input type="number" id="Patient_Age" name="Patient_Age" placeholder="e.g. 45" required min="0"
+                            max="120">
+                    </div>
+                    <div class="form-group">
+                        <label for="Patient_Gender">Gender</label>
+                        <select id="Patient_Gender" name="Patient_Gender" required>
+                            <option value="" disabled selected>Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Claim Details -->
+            <div class="form-group-section">
+                <h3>Claim Details</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="Claim_Amount">Total Claim Amount ($)</label>
+                        <input type="number" id="Claim_Amount" name="Claim_Amount" placeholder="e.g. 5000" required
+                            min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="Number_of_Procedures">No. of Procedures</label>
+                        <input type="number" id="Number_of_Procedures" name="Number_of_Procedures" placeholder="e.g. 2"
+                            required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="Deductible_Amount">Deductible ($)</label>
+                        <input type="number" id="Deductible_Amount" name="Deductible_Amount" placeholder="e.g. 500"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="CoPay_Amount">Co-Pay ($)</label>
+                        <input type="number" id="CoPay_Amount" name="CoPay_Amount" placeholder="e.g. 50" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="form-group-section">
+                <h3>Timeline</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="Service_Date">Service Date</label>
+                        <input type="date" id="Service_Date" name="Service_Date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="Claim_Date">Claim Filed Date</label>
+                        <input type="date" id="Claim_Date" name="Claim_Date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="Policy_Expiration_Date">Policy Expiry</label>
+                        <input type="date" id="Policy_Expiration_Date" name="Policy_Expiration_Date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="Length_of_Stay_Days">Length of Stay (Days)</label>
+                        <input type="number" id="Length_of_Stay_Days" name="Length_of_Stay_Days" placeholder="e.g. 3"
+                            required min="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- provider & other -->
+            <div class="form-group-section">
+                <h3>Provider & Status</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="Provider_Type">Provider Type</label>
+                        <select id="Provider_Type" name="Provider_Type" required>
+                            <option value="Hospital">Hospital</option>
+                            <option value="Clinic">Clinic</option>
+                            <option value="Specialist Office">Specialist Office</option>
+                            <option value="Urgent Care">Urgent Care</option>
+                            <option value="Pharmacy">Pharmacy</option>
+                            <option value="Laboratory">Laboratory</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Provider_Specialty">Specialty</label>
+                        <select id="Provider_Specialty" name="Provider_Specialty" required>
+                            <option value="General Practice">General Practice</option>
+                            <option value="Cardiology">Cardiology</option>
+                            <option value="Neurology">Neurology</option>
+                            <option value="Oncology">Oncology</option>
+                            <option value="Orthopedics">Orthopedics</option>
+                            <option value="Pediatrics">Pediatrics</option>
+                            <option value="Psychiatry">Psychiatry</option>
+                            <option value="Radiology">Radiology</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Claim_Submitted_Late">Late Filing?</label>
+                        <select id="Claim_Submitted_Late" name="Claim_Submitted_Late" required>
+                            <option value="False">No</option>
+                            <option value="True">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Number_of_Previous_Claims_Patient">Previous Claims (Patient)</label>
+                        <input type="number" id="Number_of_Previous_Claims_Patient"
+                            name="Number_of_Previous_Claims_Patient" placeholder="0" required min="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg">Run Fraud Analysis</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+    .form-group-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .form-group-section:last-child {
+        border-bottom: none;
+    }
+
+    .form-group-section h3 {
+        font-size: 1rem;
+        color: var(--accent);
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock %}
