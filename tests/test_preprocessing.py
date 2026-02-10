@@ -12,7 +12,7 @@ def test_clean_data_handles_nans_and_junk():
         "incident_type": ["Collision", "?"],
         "target": ["Y", "N"]
     })
-    result = clean_data(df)
+    result = clean_data(df, category="vehicle")
     # _c39 should be dropped, '?' replaced and filled
     assert "_c39" not in result.columns
     assert result.isnull().sum().sum() == 0
@@ -28,7 +28,7 @@ def test_engineer_features_creates_correct_cols():
         "property_claim": [1000],
         "total_claim_amount": [10000]
     })
-    result = engineer_features(df)
+    result = engineer_features(df, category="vehicle")
     assert "days_to_incident" in result.columns
     assert result.iloc[0]["days_to_incident"] == 10
     assert "injury_claim_ratio" in result.columns

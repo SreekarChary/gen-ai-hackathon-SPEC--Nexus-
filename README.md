@@ -23,15 +23,15 @@ source venv/bin/activate
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Place your dataset in data/raw/
+# 3. Preprocess data
+python -m src.preprocessing --category vehicle
+python -m src.preprocessing --category health
 
-# 4. Preprocess
-python -m src.preprocessing
+# 4. Train models
+python -m src.train --category vehicle
+python -m src.train --category health
 
-# 5. Train models
-python -m src.train
-
-# 6. Launch web app
+# 5. Launch web app
 python app.py
 # → Open http://127.0.0.1:5000
 ```
@@ -59,6 +59,10 @@ python app.py
 
 ```bash
 pytest tests/ -v
+
+# Run category-specific verifications
+python test_health_fraud.py
+python verify_multi_insurance.py
 ```
 
 ## Dataset
