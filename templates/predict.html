@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Analyze Claim — ClaimWatch AI{% endblock %}
+
+{% block content %}
+<section class="form-section">
+    <div class="form-container">
+        <div class="form-header">
+            <h1>🔍 Submit a Claim for Analysis</h1>
+            <p>Enter the claim details below. ClaimWatch AI will analyze the data and provide a fraud risk assessment
+                with a detailed explanation.</p>
+        </div>
+
+        <form action="{{ url_for('predict') }}" method="POST" class="claim-form" id="claimForm">
+            <div class="form-notice">
+                <p>⚠️ <strong>Note:</strong> Form fields will be auto-generated based on your dataset columns once the
+                    model is trained. Below are example placeholder fields.</p>
+            </div>
+
+            <div class="form-grid">
+                <!-- These fields are placeholders; they will be updated to match your dataset -->
+                <div class="form-group">
+                    <label for="policy_number">Policy Number</label>
+                    <input type="text" id="policy_number" name="policy_number" placeholder="e.g. POL-12345" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="claim_amount">Claim Amount ($)</label>
+                    <input type="number" id="claim_amount" name="claim_amount" placeholder="e.g. 15000" step="0.01"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="incident_type">Incident Type</label>
+                    <select id="incident_type" name="incident_type" required>
+                        <option value="">Select type...</option>
+                        <option value="collision">Collision</option>
+                        <option value="theft">Theft</option>
+                        <option value="fire">Fire</option>
+                        <option value="vandalism">Vandalism</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="incident_severity">Incident Severity</label>
+                    <select id="incident_severity" name="incident_severity" required>
+                        <option value="">Select severity...</option>
+                        <option value="minor">Minor Damage</option>
+                        <option value="major">Major Damage</option>
+                        <option value="total_loss">Total Loss</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="insured_age">Insured Age</label>
+                    <input type="number" id="insured_age" name="insured_age" placeholder="e.g. 35" min="18" max="100"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="annual_income">Annual Income ($)</label>
+                    <input type="number" id="annual_income" name="annual_income" placeholder="e.g. 55000" step="0.01"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="number_of_past_claims">Past Claims (last 3 years)</label>
+                    <input type="number" id="number_of_past_claims" name="number_of_past_claims" placeholder="e.g. 2"
+                        min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="police_report_filed">Police Report Filed?</label>
+                    <select id="police_report_filed" name="police_report_filed" required>
+                        <option value="">Select...</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    🚀 Analyze Claim
+                </button>
+                <button type="reset" class="btn btn-secondary">
+                    Clear Form
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Result — ClaimWatch AI{% endblock %}
+
+{% block content %}
+<section class="result-section">
+    <div class="result-container">
+
+        <!-- Verdict Banner -->
+        <div class="verdict-banner {{ 'fraud' if result.verdict == 'Fraudulent' else 'legit' }}">
+            <div class="verdict-icon">
+                {% if result.verdict == "Fraudulent" %}🚨{% else %}✅{% endif %}
+            </div>
+            <h1 class="verdict-text">{{ result.verdict }}</h1>
+        </div>
+
+        <!-- Risk Score Gauge -->
+        <div class="risk-gauge-wrapper">
+            <div class="risk-gauge">
+                <svg viewBox="0 0 200 120" class="gauge-svg">
+                    <!-- Background arc -->
+                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#2a2a3e" stroke-width="14"
+                        stroke-linecap="round" />
+                    <!-- Filled arc -->
+                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGradient)" stroke-width="14"
+                        stroke-linecap="round" stroke-dasharray="{{ result.risk_score * 251.2 }} 251.2"
+                        class="gauge-fill" />
+                    <defs>
+                        <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#10b981" />
+                            <stop offset="50%" style="stop-color:#f59e0b" />
+                            <stop offset="100%" style="stop-color:#ef4444" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="gauge-value" id="gaugeValue">{{ "%.1f"|format(result.risk_score * 100) }}%</div>
+                <div class="gauge-label">Risk Score</div>
+            </div>
+        </div>
+
+        <!-- Reasoning -->
+        <div class="reasoning-card">
+            <h2>🧠 AI Reasoning</h2>
+            <div class="reasoning-text">
+                {{ result.reasoning | safe }}
+            </div>
+        </div>
+
+        <!-- Top Features -->
+        <div class="features-card">
+            <h2>📊 Top Contributing Factors</h2>
+            <div class="feature-bars">
+                {% for feat in result.top_features %}
+                <div class="feature-bar-row">
+                    <span class="feature-name">{{ feat.feature.replace('_', ' ').title() }}</span>
+                    <div class="feature-bar-track">
+                        <div class="feature-bar-fill {{ 'positive' if feat.shap_value > 0 else 'negative' }}"
+                            style="width: {{ (feat.shap_value|abs / 1.0 * 100)|min(100) }}%">
+                        </div>
+                    </div>
+                    <span class="feature-impact">{{ "%+.4f"|format(feat.shap_value) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="result-actions">
+            <a href="{{ url_for('predict_form') }}" class="btn btn-primary">🔍 Analyze Another Claim</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ClaimWatch AI{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            Intelligent <span class="gradient-text">Fraud Detection</span>
+            <br>for Insurance Claims
+        </h1>
+        <p class="hero-subtitle">
+            ClaimWatch AI analyzes claim patterns, assigns risk scores, and explains
+            its reasoning in plain English — so your team can investigate smarter, not harder.
+        </p>
+        <a href="{{ url_for('predict_form') }}" class="btn btn-primary btn-lg">
+            🔍 Analyze a Claim
+        </a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <h2 class="section-title">How It Works</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Claim Pattern Analysis</h3>
+            <p>AI examines historical patterns across thousands of claims to spot anomalies.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Instant Risk Scoring</h3>
+            <p>Every claim gets a 0–100% fraud risk score in under a second.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💡</div>
+            <h3>Explainable AI</h3>
+            <p>No black box — the system tells you <strong>why</strong> in simple words.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3>Adaptive Learning</h3>
+            <p>The AI learns from human investigators and improves over time.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Metrics Section -->
+{% if metrics %}
+<section class="metrics-section">
+    <h2 class="section-title">Model Performance</h2>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value">{{ "%.1f"|format(metrics.accuracy * 100) }}%</div>
+            <div class="metric-label">Accuracy</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ "%.1f"|format(metrics.precision * 100) }}%</div>
+            <div class="metric-label">Precision</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ "%.1f"|format(metrics.recall * 100) }}%</div>
+            <div class="metric-label">Recall</div>
+        </div>
+        <div class="metric-card accent">
+            <div class="metric-value">{{ "%.1f"|format(metrics.roc_auc * 100) }}%</div>
+            <div class="metric-label">ROC-AUC</div>
+        </div>
+    </div>
+</section>
+{% else %}
+<section class="metrics-section">
+    <h2 class="section-title">Model Performance</h2>
+    <div class="metrics-placeholder">
+        <p>📈 Train the model first to see performance metrics here.</p>
+        <code>python -m src.train</code>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
