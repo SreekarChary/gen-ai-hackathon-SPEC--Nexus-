@@ -21,7 +21,7 @@ CATEGORIES = {
         "target": "Is_Fraudulent",
         "raw_file": "synthetic_health_claims.csv",
         "junk_cols": ['Patient_ID', 'Policy_Number', 'Claim_ID', 'Hospital_ID', 'Diagnosis_Code', 'Procedure_Code'],
-        "threshold": 0.5 # Default for now
+        "threshold": 0.4
     }
 }
 
