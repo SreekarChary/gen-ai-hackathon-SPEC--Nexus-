@@ -15,7 +15,7 @@ CATEGORIES = {
         "target": "fraud_reported",
         "raw_file": "insurance_claims.csv",
         "junk_cols": ['_c39', 'policy_number', 'insured_zip', 'incident_location'],
-        "threshold": 0.5
+        "threshold": 0.25
     },
     "health": {
         "target": "Is_Fraudulent",
