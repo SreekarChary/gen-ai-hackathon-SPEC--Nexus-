@@ -8,6 +8,9 @@ import shap
 # Add root dir to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
+from src.explainer import generate_reasoning
+
+INR_TO_USD = 1 / 83.0 # Conversion rate
 
 
 def load_artifacts(category: str, model_name="best_model"):
@@ -31,6 +34,15 @@ def load_artifacts(category: str, model_name="best_model"):
 def preprocess_input(claim_dict: dict, category: str, label_encoders: dict, scaler, feature_names: list, num_cols: list):
     """Transform raw dictionary into model-ready dataframe for specific category."""
     df = pd.DataFrame([claim_dict])
+
+    # Convert Monetary fields from INR to USD
+    monetary_cols = {
+        "vehicle": ['total_claim_amount', 'injury_claim', 'property_claim', 'vehicle_claim', 'policy_annual_premium', 'policy_deductable', 'umbrella_limit'],
+        "health": ['Claim_Amount', 'Deductible_Amount', 'CoPay_Amount']
+    }
+    for col in monetary_cols.get(category, []):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0) * INR_TO_USD
 
     if category == "vehicle":
         # Vehicle Feature Engineering
@@ -104,24 +116,14 @@ def top_features(shap_row, feature_names, n=config.TOP_N_FEATURES):
     for i in range(len(feature_names)):
         feat_impact.append({
             "feature": feature_names[i],
-            "shap_value": float(shap_row[i])
+            "shap_value": float(shap_row[i]),
+            "direction": "increases fraud risk" if shap_row[i] > 0 else "decreases fraud risk"
         })
     
     # Sort by absolute impact
     feat_impact.sort(key=lambda x: abs(x["shap_value"]), reverse=True)
     return feat_impact[:n]
 
-
-def generate_reasoning(top_feats, risk_score, verdict):
-    """Generate a human-readable explanation."""
-    if verdict == "Legitimate":
-        reasons = [f"Strongest factor mitigating risk: {top_feats[0]['feature']}" if len(top_feats) > 0 else "Low suspicious patterns."]
-    else:
-        reasons = [f"Primary risk driver: {top_feats[0]['feature']}" if len(top_feats) > 0 else "Multiple risk indicators found."]
-        if len(top_feats) > 1:
-            reasons.append(f"Contributing factor: {top_feats[1]['feature']}")
-
-    return " ".join(reasons)
 
 
 def predict_claim(claim_dict: dict, category=config.DEFAULT_CATEGORY, model_name="best_model"):
