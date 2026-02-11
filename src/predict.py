@@ -42,7 +42,7 @@ def preprocess_input(claim_dict: dict, category: str, label_encoders: dict, scal
             'total_claim_amount', 'injury_claim', 'property_claim', 
             'vehicle_claim', 'policy_annual_premium', 'age', 
             'incident_hour_of_the_day', 'number_of_vehicles_involved',
-            'policy_deductable', 'umbrella_limit'
+            'policy_deductable', 'umbrella_limit', 'bodily_injuries', 'witnesses'
         ]
         for col in numeric_cols:
             if col in df.columns:

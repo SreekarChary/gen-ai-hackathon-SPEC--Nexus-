@@ -14,8 +14,13 @@ def test_predict_claim_returns_dict():
     sample = {
         "incident_severity": "Major Damage",
         "incident_type": "Single Vehicle Collision",
+        "collision_type": "Side Collision",
+        "authorities_contacted": "Police",
         "incident_hour_of_the_day": "5",
         "number_of_vehicles_involved": "1",
+        "bodily_injuries": "1",
+        "witnesses": "2",
+        "police_report_available": "YES",
         "total_claim_amount": "50000",
         "injury_claim": "5000",
         "property_claim": "5000",
